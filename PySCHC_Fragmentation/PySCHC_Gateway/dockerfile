@@ -1,0 +1,7 @@
+FROM python:3
+COPY fragmentation_example_Gw_Kubernetes.py /
+COPY SCHC_FR/* SCHC_FR/
+EXPOSE 8080/tcp
+RUN pip install bitstring
+RUN pip install requests
+CMD [ "python", "./fragmentation_example_Gw_Kubernetes.py" ]

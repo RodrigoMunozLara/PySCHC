@@ -1,0 +1,92 @@
+*************************************************************************
+Para compilar esta aplicacion en Docker siga las siguientes intrucciones
+*************************************************************************
+ANTES DE COMENZAR
+Tener instalado Docker en ubuntu
+Tener instalado el SDK de Google Cloud (gcloud)
+Tener instalado Kubernetes (kubectl)
+
+*****************************************************
+***** Paso 1: Compila la imagen del contenedor ******
+*****************************************************
+
+1.- Haga un checkout del repositorio de GIT
+mkdir tesis
+cd tesis
+git clone https://github.com/RodrigoMunozLara/Tesis.git
+
+2.- Actualice la copia local constantemente para ver los cambios reflejados
+git pull
+
+3.- (opcional) Lista todas las imagenes que hay cargadas en Docker
+docker images ls
+
+4.- (opcional) Borra una imagen en particular
+docker rmi [IMAGE ID]
+
+5.- (opcional) Lista todos los container que hay cargados en Docker
+docker container ls
+
+6.- (opcional) Borra un container en particular
+docker rm []
+
+7.- (opcional) Construir una imagen en Docker usando un dockerfile
+docker image build -t [PATH]
+(ejemplo: docker image build -t prueba:1.0 .)
+
+8.- (opcional) Ejecuta un container en docker
+docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
+(ejemplo: docker container run --name test prueba:1.0)
+
+9.- Establece la variable de entorno PROJECT_ID en tu ID del proyecto de Google Cloud. Esta variable se usará para asociar la imagen del contenedor con el Container Registry de tu proyecto.
+export PROJECT_ID=[PROJECT_ID]
+
+10.- Compilar la imagen del contenedor de esta aplicación y etiquetarla para subirla, ejecuta el siguiente comando:
+docker build -t gcr.io/${PROJECT_ID}/prueba-app:v1 .
+
+************************************************************
+******* Paso 2: Sube la imagen del contenedor **************
+************************************************************
+
+11.- Configura la herramienta de línea de comandos de Docker para autenticarte en el Container Registry
+(debes ejecutar esto solo una vez):
+gcloud auth configure-docker
+
+12.- Ahora puedes usar la herramienta de línea de comandos de Docker para subir la imagen en tu Container Registry:
+docker push gcr.io/${PROJECT_ID}/prueba-app:v1
+
+
+*************************************************************
+*********** Paso 3: Crea un clúster de contenedores *********
+*************************************************************
+13.- Configura las opciones de tu ID del proyecto y de la zona de Compute Engine para la herramienta de gcloud:
+gcloud config set project $PROJECT_ID
+gcloud config set compute/zone [COMPUTE_ENGINE_ZONE]
+
+14.- Ejecuta el siguiente comando para crear un clúster de dos nodos llamado hello-cluster:
+gcloud container clusters create hello-cluster --num-nodes=2
+
+15.- La creación del clúster puede tardar varios minutos. Una vez que se completó el comando, ejecuta el siguiente comando y observa las dos instancias de VM de trabajador del clúster:
+gcloud compute instances list
+
+*************************************************************
+********** Paso 4: Implementa tu aplicación *****************
+*************************************************************
+16.- Ejecuta el siguiente comando para implementar tu aplicación:
+kubectl create deployment prueba-no-web --image=gcr.io/${PROJECT_ID}/prueba-app:v1
+
+17.- Para ver el pod creado por la implementación, ejecuta el siguiente comando:
+kubectl get pods
+
+18.- Exponer la aplicacion a Internet
+kubectl expose deployment hello-web --type=LoadBalancer --port 80 --target-port 8080
+
+19.- Si deseas averiguar la IP externa que GKE aprovisionó para tu aplicación, puedes
+inspeccionar el servicio con el comando:
+kubectl get service
+
+20.- Ver los logs de la aplicacion
+kubectl log [pod-name]
+
+21.- Para ver los pods
+kubectl get pods
